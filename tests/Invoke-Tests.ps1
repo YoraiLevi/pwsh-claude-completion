@@ -21,6 +21,11 @@ if (-not $pester) {
     Install-Module Pester -MinimumVersion 5.5.0 -MaximumVersion 5.99.99 -Force -SkipPublisherCheck -Scope CurrentUser
 }
 
+if (-not (Get-Module PSScriptAnalyzer -ListAvailable)) {
+    Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+    Install-Module PSScriptAnalyzer -MinimumVersion 1.21.0 -Force -SkipPublisherCheck -Scope CurrentUser
+}
+
 Import-Module Pester -MinimumVersion 5.0.0 -Force
 
 $config = New-PesterConfiguration

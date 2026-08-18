@@ -23,24 +23,88 @@ function Set-ClaudeHelpProvider {
     Reset-ClaudeHelpCache
 }
 
+function ConvertTo-ClaudePlainText {
+    [CmdletBinding()]
+    param(
+        [AllowNull()]
+        [AllowEmptyString()]
+        [string]$Text
+    )
+    if ([string]::IsNullOrEmpty($Text)) { return $Text }
+
+    # Repair UTF-8 bytes of U+2013/U+2014 decoded as OEM CP437 / Windows-1252.
+    # CP437: E2 80 93 -> ΓÇô   CP1252: E2 80 93 -> â€“ (en-dash) / â€” (em-dash)
+    $t = $Text
+    $t = $t.Replace(([string][char]0x0393 + [char]0x00C7 + [char]0x00F4), '-')   # ΓÇô
+    $t = $t.Replace(([string][char]0x0393 + [char]0x00C7 + [char]0x201D), '-')   # ΓÇ”
+    $t = $t.Replace(([string][char]0x00E2 + [char]0x20AC + [char]0x2013), '-')   # â€“
+    $t = $t.Replace(([string][char]0x00E2 + [char]0x20AC + [char]0x2014), '-')   # â€”
+    $t = $t.Replace(([string][char]0x00E2 + [char]0x20AC + [char]0x2122), "'")  # â€™
+    $t = $t.Replace(([string][char]0x2013), '-')  # en-dash
+    $t = $t.Replace(([string][char]0x2014), '-')  # em-dash
+    $t = $t.Replace(([string][char]0x2212), '-')  # minus
+    $t = $t.Replace(([string][char]0x00AD), '-')  # soft hyphen
+    $t = $t.Replace(([string][char]0x2018), "'")
+    $t = $t.Replace(([string][char]0x2019), "'")
+    $t = $t.Replace(([string][char]0x201C), '"')
+    $t = $t.Replace(([string][char]0x201D), '"')
+    $t = $t.Replace(([string][char]0x2026), '...')
+    $t = $t.Replace(([string][char]0x00A0), ' ')
+    return $t
+}
+
+function Get-ClaudeNativeCommand {
+    [CmdletBinding()]
+    param()
+    # Prefer claude.exe so a profile function/alias named `claude` cannot hide the CLI.
+    $exe = Get-Command -Name 'claude.exe' -CommandType Application -ErrorAction SilentlyContinue |
+        Select-Object -First 1
+    if ($exe) { return $exe }
+    Get-Command -Name 'claude' -CommandType Application -ErrorAction SilentlyContinue |
+        Select-Object -First 1
+}
+
+function Get-ClaudeNativeHelp {
+    [CmdletBinding()]
+    param([string[]]$Path)
+
+    $cmd = Get-ClaudeNativeCommand
+    if (-not $cmd) { return $null }
+
+    $argList = [System.Collections.Generic.List[string]]::new()
+    if ($Path) { foreach ($p in @($Path)) { [void]$argList.Add([string]$p) } }
+    [void]$argList.Add('--help')
+
+    $stdoutFile = [System.IO.Path]::GetTempFileName()
+    $stderrFile = [System.IO.Path]::GetTempFileName()
+    try {
+        $start = @{
+            FilePath               = $cmd.Source
+            ArgumentList           = @($argList)
+            Wait                   = $true
+            NoNewWindow            = $true
+            PassThru               = $true
+            RedirectStandardOutput = $stdoutFile
+            RedirectStandardError  = $stderrFile
+        }
+        $null = Start-Process @start
+        $stdout = Get-Content -LiteralPath $stdoutFile -Raw -Encoding UTF8 -ErrorAction SilentlyContinue
+        if ($stdout) { return $stdout }
+        Get-Content -LiteralPath $stderrFile -Raw -Encoding UTF8 -ErrorAction SilentlyContinue
+    } catch {
+        $null
+    } finally {
+        Remove-Item -LiteralPath $stdoutFile, $stderrFile -Force -ErrorAction SilentlyContinue
+    }
+}
+
 function Get-ClaudeHelpProvider {
     [CmdletBinding()]
     param()
     if ($script:HelpProvider) { return $script:HelpProvider }
     return {
         param([string[]]$Path)
-        $cliArgs = @()
-        if ($Path) { $cliArgs += @($Path) }
-        $cliArgs += '--help'
-        $prevEap = $ErrorActionPreference
-        try {
-            $ErrorActionPreference = 'Continue'
-            & claude @cliArgs 2>&1 | Out-String
-        } catch {
-            $null
-        } finally {
-            $ErrorActionPreference = $prevEap
-        }
+        Get-ClaudeNativeHelp -Path $Path
     }
 }
 
@@ -58,6 +122,8 @@ function ConvertFrom-ClaudeHelpText {
     if ([string]::IsNullOrWhiteSpace($Text)) {
         return [pscustomobject]@{ Commands = $commands; Options = $options; Arguments = $arguments }
     }
+
+    $Text = ConvertTo-ClaudePlainText -Text $Text
 
     $section = $null
     $lines = $Text -split '\r?\n'
@@ -442,12 +508,14 @@ function Register-ClaudeArgumentCompleter {
         & $cmd -wordToComplete $wordToComplete -commandAst $commandAst -cursorPosition $cursorPosition
     }.GetNewClosure()
 
-    Register-ArgumentCompleter -Native -CommandName @('claude', 'claude.exe') -ScriptBlock $completer
+    Register-ArgumentCompleter -Native -CommandName @('claude', 'claude.exe', 'Invoke-Claude') -ScriptBlock $completer
 }
 
 Export-ModuleMember -Function @(
     'ConvertFrom-ClaudeHelpText',
+    'ConvertTo-ClaudePlainText',
     'Get-ClaudeHelpSpec',
+    'Get-ClaudeNativeCommand',
     'Complete-ClaudeNativeArgument',
     'Register-ClaudeArgumentCompleter',
     'Set-ClaudeHelpProvider',

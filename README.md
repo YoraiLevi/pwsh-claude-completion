@@ -1,6 +1,6 @@
 # pwsh-claude-completion
 
-[![CI](https://github.com/YoraiLevi/pwsh-claude-completion/actions/workflows/ci.yml/badge.svg)](https://github.com/YoraiLevi/pwsh-claude-completion/actions/workflows/ci.yml)
+[![CI](https://github.com/YoraiLevi/pwsh-claude-completion/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/YoraiLevi/pwsh-claude-completion/actions/workflows/ci.yml?query=branch%3Amaster)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Native PowerShell tab completion for the `claude` CLI.
@@ -23,7 +23,9 @@ Replace the path with wherever you cloned the repo.
 
 Then type `claude ` and press Tab.
 
-First Tab after a new shell shells out to `claude --help` once per command path (~0.4s here), then caches that path for the session.
+First Tab after a new shell shells out to `claude.exe --help` (never the `claude` function/alias) once per command path (~0.4s here), then caches that path for the session.
+
+Help text is read as UTF-8 and folded to ASCII punctuation, so tooltips say `100k-1M` instead of a garbled en-dash.
 
 ## What Tab completes
 
