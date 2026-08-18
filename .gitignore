@@ -1,0 +1,8 @@
+.research/
+testResults.xml
+coverage.xml
+*.zip
+*.nupkg
+.idea/
+.vs/
+*.user
