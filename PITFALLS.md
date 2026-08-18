@@ -7,4 +7,6 @@
 - **Windows ships Pester 3.4.** CI and `Invoke-Tests.ps1` must `Import-Module Pester -MinimumVersion 5.0`.
 - **Empty completer results fall back to filesystem completion.** That looks like success for free-form values such as `--agents <json>`. Do not treat file suggestions as proof the parser chose a path type.
 - **`2^n` is help-shape axes, not CLI flags.** `2^(flag count)` is not a test plan.
+- **`claude` on this machine is an alias to `Invoke-Claude`.** `& claude --help` never reaches the CLI. Resolve `claude.exe` / `CommandType Application` only.
+- **`ΓÇô` in tooltips is an en-dash (`–`, UTF-8 `E2 80 93`) decoded as OEM CP437.** Do not pipe `claude.exe` through the console encoding. Redirect to a file and `Get-Content -Encoding UTF8`, then fold remaining punctuation to ASCII.
 - **Required status check names are the GitHub Actions *check* names**, e.g. `test (ubuntu-latest)`, not the workflow file name.

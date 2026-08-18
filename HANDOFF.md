@@ -6,8 +6,9 @@ Default branch: `master` (PR-only, no force-push).
 ## Now
 
 PowerShell native completer for `claude`, driven by `--help`.
+Calls `claude.exe` (not the `claude` -> `Invoke-Claude` alias). Help is UTF-8 + ASCII-folded.
 MIT. Pester 5 suite generates all `2^n` help shapes from `tests/Helpers.ps1`.
-CI: `.github/workflows/ci.yml` on Ubuntu, Windows, macOS.
+CI: `.github/workflows/ci.yml` on Ubuntu, Windows, macOS. Also `Test-ModuleManifest` + PSScriptAnalyzer.
 
 ## Next
 
