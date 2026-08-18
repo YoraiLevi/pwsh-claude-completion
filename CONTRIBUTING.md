@@ -3,10 +3,12 @@
 ## Branch and PR
 
 - Default branch: `master`.
-- The `PRIMARY` ruleset requires a PR, blocks force-push and branch deletion, and requires all three CI jobs green:
-  - `test (ubuntu-latest)`
-  - `test (windows-latest)`
-  - `test (macos-latest)`
+- The `PRIMARY` ruleset requires a PR, blocks force-push and branch deletion, and requires these CI jobs green:
+  - `test (ubuntu-latest)` (`pwsh`)
+  - `test (windows-latest)` (`pwsh`)
+  - `test (macos-latest)` (`pwsh`)
+- Every PR also runs `test (windows-powershell-5.1)` (`powershell.exe`). That job is not a PRIMARY required check yet; add it after it has produced a check on `master` (see `HANDOFF.md`).
+- Do not add a `shell` dimension to the `test` OS matrix. That would rename `test (ubuntu-latest)` to `test (ubuntu-latest, pwsh)` and block every PR.
 - `bypass_actors` is empty, so admins cannot merge past a red CI either. If you are blocked, fix the build.
 - Branch prefixes: `feat/`, `fix/`, `docs/`, `chore/`, `test/`.
 - **Squash merge only.** Merge commits and rebase merges are disabled. Merged branches auto-delete.
@@ -15,9 +17,10 @@
 
 ```powershell
 pwsh -NoProfile -File ./tests/Invoke-Tests.ps1
+powershell -NoProfile -File ./tests/Invoke-Tests.ps1
 ```
 
-This installs Pester 5 to the current user if needed, then runs `tests/`.
+This installs Pester 5 to the current user if needed, then runs `tests/`. On Windows PowerShell 5.1 it enables TLS 1.2 first (PSGallery rejects TLS 1.0). Inbox Pester 3.4 is ignored via `-MinimumVersion 5.0`.
 
 The combinatorial suite is generated at test discovery from `tests/Helpers.ps1`.
 If you add a boolean axis, you do not write 2^(n+1) cases by hand — you add one name and the generator doubles.

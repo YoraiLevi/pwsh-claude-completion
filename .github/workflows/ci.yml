@@ -38,3 +38,44 @@ jobs:
           name: pester-${{ matrix.os }}
           path: testResults.xml
           if-no-files-found: error
+
+  test-windows-powershell:
+    name: test (windows-powershell-5.1)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Assert Windows PowerShell 5.1
+        shell: powershell
+        run: |
+          $ver = $PSVersionTable.PSVersion
+          $edition = $PSVersionTable.PSEdition
+          Write-Host ("PSVersion={0} PSEdition={1}" -f $ver, $edition)
+          if ($edition -ne 'Desktop' -or $ver.Major -ne 5 -or $ver.Minor -lt 1) {
+            throw "Expected Windows PowerShell 5.1 Desktop, got $ver $edition"
+          }
+
+      - name: Install Pester 5
+        shell: powershell
+        run: |
+          [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+          $nuget = Get-PackageProvider -Name NuGet -ErrorAction SilentlyContinue
+          if (-not $nuget -or $nuget.Version -lt [version]'2.8.5.201') {
+            Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -Scope CurrentUser | Out-Null
+          }
+          Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+          Install-Module Pester -MinimumVersion 5.5.0 -MaximumVersion 5.99.99 -Force -SkipPublisherCheck -Scope CurrentUser
+          Install-Module PSScriptAnalyzer -MinimumVersion 1.21.0 -Force -SkipPublisherCheck -Scope CurrentUser
+
+      - name: Run tests
+        shell: powershell
+        run: ./tests/Invoke-Tests.ps1
+
+      - name: Upload Pester results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pester-windows-powershell-5.1
+          path: testResults.xml
+          if-no-files-found: error

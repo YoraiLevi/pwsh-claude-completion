@@ -23,7 +23,7 @@
     AliasesToExport   = @()
     PrivateData       = @{
         PSData = @{
-            Tags         = @('Claude', 'ClaudeCode', 'TabCompletion', 'ArgumentCompleter', 'PowerShell', 'PSEdition_Core', 'Windows')
+            Tags         = @('Claude', 'ClaudeCode', 'TabCompletion', 'ArgumentCompleter', 'PowerShell', 'PSEdition_Desktop', 'PSEdition_Core', 'Windows')
             LicenseUri   = 'https://github.com/YoraiLevi/pwsh-claude-completion/blob/master/LICENSE'
             ProjectUri   = 'https://github.com/YoraiLevi/pwsh-claude-completion'
             ReleaseNotes = 'Initial release: help-driven native completer and 2^n combinatorial parser tests.'

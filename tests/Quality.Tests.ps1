@@ -16,6 +16,23 @@ Describe 'module manifest' {
         $m.Description | Should -Not -BeNullOrEmpty
         $m.Version | Should -BeGreaterThan ([version]'0.0.0')
     }
+
+    It 'declares Windows PowerShell 5.1 and both PS editions' {
+        $m = Test-ModuleManifest -Path $script:ManifestPath -ErrorAction Stop
+        $m.PowerShellVersion | Should -Be ([version]'5.1')
+        $tags = @($m.Tags)
+        $tags | Should -Contain 'PSEdition_Desktop'
+        $tags | Should -Contain 'PSEdition_Core'
+    }
+}
+
+Describe 'README install' {
+    It 'profile install is a single Import-Module; Register line' {
+        $readme = Get-Content -LiteralPath (Join-Path $script:ModuleRoot 'README.md') -Raw
+        $readme | Should -Match "Import-Module '[^']+ClaudeCompletion\.psd1'; Register-ClaudeArgumentCompleter"
+        $twoLine = "Import-Module '[^']+ClaudeCompletion\.psd1'\r?\nRegister-ClaudeArgumentCompleter"
+        $readme | Should -Not -Match $twoLine
+    }
 }
 
 Describe 'PSScriptAnalyzer' {
