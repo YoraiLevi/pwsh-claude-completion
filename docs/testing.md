@@ -30,7 +30,7 @@ Inert bits stay in the power set. Example: `CommandHasAlias=true` and `HasComman
 
 ## Why this is one CI job, not 256 jobs
 
-GitHub Actions caps a matrix at 256 jobs and bills per job. The power set is expanded inside Pester at discovery time. The Actions matrix is only OS (`ubuntu`, `windows`, `macos`) × `pwsh`.
+GitHub Actions caps a matrix at 256 jobs and bills per job. The power set is expanded inside Pester at discovery time. The Actions `test` matrix is only OS (`ubuntu`, `windows`, `macos`) × `pwsh` so required check names stay `test (<os>)`. Windows PowerShell 5.1 is a separate job, `test (windows-powershell-5.1)`, not a `shell` matrix axis.
 
 ## What would prove the generator is broken
 

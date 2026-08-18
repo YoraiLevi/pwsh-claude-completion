@@ -10,13 +10,14 @@ Nothing is hardcoded from a particular Claude Code version.
 
 ## Install (about 1 minute)
 
+Not on the PowerShell Gallery yet. Clone, then one line in your profile.
+
 1. Clone this repo
-2. Add the two lines below to your PowerShell profile (`notepad $PROFILE`)
-3. Open a new `pwsh`
+2. Add the line below to your PowerShell profile (`notepad $PROFILE`)
+3. Open a new PowerShell (Windows PowerShell 5.1 or PowerShell 7)
 
 ```powershell
-Import-Module 'C:\path\to\pwsh-claude-completion\ClaudeCompletion.psd1'
-Register-ClaudeArgumentCompleter
+Import-Module 'C:\path\to\pwsh-claude-completion\ClaudeCompletion.psd1'; Register-ClaudeArgumentCompleter
 ```
 
 Replace the path with wherever you cloned the repo.
@@ -44,6 +45,7 @@ After a Claude upgrade, open a new shell so help is re-parsed.
 
 ```powershell
 pwsh -NoProfile -File ./tests/Invoke-Tests.ps1
+powershell -NoProfile -File ./tests/Invoke-Tests.ps1
 ```
 
 The suite **builds every 2^n help shape** from the boolean axes in `tests/Helpers.ps1` and asserts parser + completer invariants on each one.
@@ -65,11 +67,11 @@ Axes (single source: `tests/Helpers.ps1`):
 
 Adding a name to that list doubles the generated suite.
 
-CI also runs the same suite on Ubuntu, Windows, and macOS (`pwsh`).
+CI runs the same suite on Ubuntu, Windows, and macOS (`pwsh`), plus Windows PowerShell 5.1 (`powershell.exe`). The manifest's `PowerShellVersion = 5.1` is that last job.
 
 ## Require a PR
 
-`master` is protected by a repository ruleset: pull requests only, no force-push, no branch delete, CI `test (ubuntu-latest)`, `test (windows-latest)`, and `test (macos-latest)` must be green. See `CONTRIBUTING.md`.
+`master` is protected by a repository ruleset: pull requests only, no force-push, no branch delete, CI `test (ubuntu-latest)`, `test (windows-latest)`, and `test (macos-latest)` must be green. Every PR also runs `test (windows-powershell-5.1)`. See `CONTRIBUTING.md`.
 
 ## License
 
