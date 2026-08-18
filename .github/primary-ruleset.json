@@ -32,7 +32,8 @@
         "required_status_checks": [
           { "context": "test (ubuntu-latest)" },
           { "context": "test (windows-latest)" },
-          { "context": "test (macos-latest)" }
+          { "context": "test (macos-latest)" },
+          { "context": "test (windows-powershell-5.1)" }
         ]
       }
     }

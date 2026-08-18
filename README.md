@@ -71,7 +71,7 @@ CI runs the same suite on Ubuntu, Windows, and macOS (`pwsh`), plus Windows Powe
 
 ## Require a PR
 
-`master` is protected by a repository ruleset: pull requests only, no force-push, no branch delete, CI `test (ubuntu-latest)`, `test (windows-latest)`, and `test (macos-latest)` must be green. Every PR also runs `test (windows-powershell-5.1)`. See `CONTRIBUTING.md`.
+`master` is protected by a repository ruleset: pull requests only, no force-push, no branch delete. CI `test (ubuntu-latest)`, `test (windows-latest)`, `test (macos-latest)`, and `test (windows-powershell-5.1)` must be green. See `CONTRIBUTING.md`.
 
 ## License
 
