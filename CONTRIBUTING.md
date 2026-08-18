@@ -7,7 +7,7 @@
   - `test (ubuntu-latest)` (`pwsh`)
   - `test (windows-latest)` (`pwsh`)
   - `test (macos-latest)` (`pwsh`)
-- Every PR also runs `test (windows-powershell-5.1)` (`powershell.exe`). That job is not a PRIMARY required check yet; add it after it has produced a check on `master` (see `HANDOFF.md`).
+  - `test (windows-powershell-5.1)` (`powershell.exe`)
 - Do not add a `shell` dimension to the `test` OS matrix. That would rename `test (ubuntu-latest)` to `test (ubuntu-latest, pwsh)` and block every PR.
 - `bypass_actors` is empty, so admins cannot merge past a red CI either. If you are blocked, fix the build.
 - Branch prefixes: `feat/`, `fix/`, `docs/`, `chore/`, `test/`.
