@@ -65,4 +65,19 @@ Describe 'live claude.exe help (skipped when the CLI is absent)' {
         $desc | Should -Not -Match ([char]0x2013)
         $desc | Should -Not -Match ([char]0x00E2)
     }
+
+    It 'mcp empty Tab offers add, not Commander help or -h/--help' {
+        $native = Get-ClaudeNativeCommand
+        if (-not $native) {
+            Set-ItResult -Skipped -Because 'claude.exe not on PATH'
+            return
+        }
+        Reset-ClaudeHelpCache
+        Set-ClaudeHelpProvider -Provider $null
+        $texts = @(Complete-ClaudeNativeArgument -wordToComplete '' -Tokens @('mcp') | ForEach-Object { $_.CompletionText })
+        $texts | Should -Contain 'add'
+        $texts | Should -Not -Contain 'help'
+        $texts | Should -Not -Contain '--help'
+        $texts | Should -Not -Contain '-h'
+    }
 }

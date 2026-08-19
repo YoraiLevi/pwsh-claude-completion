@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Do not offer Commander `help` or `-h`/`--help` as siblings of real subcommands. Empty Tab after `mcp ` lists `add`/`list`/…; type `-` for flags. Leaf commands such as `mcp add` still offer flags on empty Tab.
+
 ## 0.1.0 — 2026-08-18
 
 - Initial public release.
