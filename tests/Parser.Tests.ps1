@@ -29,6 +29,34 @@ Commands:
         $spec.Commands.ContainsKey('Examples') | Should -BeFalse
     }
 
+    It 'does not treat Commander help [command] as a subcommand when -h/--help exists' {
+        $help = @"
+Options:
+  -h, --help                            Display help for command
+Commands:
+  add [options] <name> <commandOrUrl> [args...]  Add an MCP server
+  help [command]                        display help for command
+  list                                  List configured MCP servers
+"@
+        $spec = ConvertFrom-ClaudeHelpText -Text $help
+        $spec.Commands.ContainsKey('add') | Should -BeTrue
+        $spec.Commands.ContainsKey('list') | Should -BeTrue
+        $spec.Commands.ContainsKey('help') | Should -BeFalse
+        $spec.Options.ContainsKey('-h') | Should -BeTrue
+        $spec.Options.ContainsKey('--help') | Should -BeTrue
+    }
+
+    It 'keeps a real help subcommand when -h/--help are absent' {
+        $help = @"
+Commands:
+  help     Show the user manual
+  list     List items
+"@
+        $spec = ConvertFrom-ClaudeHelpText -Text $help
+        $spec.Commands.ContainsKey('help') | Should -BeTrue
+        $spec.Commands.ContainsKey('list') | Should -BeTrue
+    }
+
     It 'does not steal flags mentioned only in a description' {
         $help = @"
 Options:
@@ -158,6 +186,80 @@ Options:
         $texts = @(Complete-ClaudeNativeArgument -wordToComplete '--output-format=j' -Tokens @() | ForEach-Object { $_.CompletionText })
         $texts | Should -Contain '--output-format=json'
         $texts | Should -Not -Contain '--output-format=text'
+    }
+
+    It 'after a subcommand, empty Tab offers sibling commands, not -h/--help or Commander help' {
+        Set-ClaudeHelpProvider -Provider {
+            param($Path)
+            if (-not $Path) {
+                return @"
+Commands:
+  mcp                    Configure MCP
+Options:
+  -h, --help             Display help for command
+"@
+            }
+            return @"
+Options:
+  -h, --help                            Display help for command
+Commands:
+  add [options] <name>                  Add a server
+  help [command]                        display help for command
+  list                                  List servers
+"@
+        }
+        Reset-ClaudeHelpCache
+        $texts = @(Complete-ClaudeNativeArgument -wordToComplete '' -Tokens @('mcp') | ForEach-Object { $_.CompletionText })
+        $texts | Should -Contain 'add'
+        $texts | Should -Contain 'list'
+        $texts | Should -Not -Contain 'help'
+        $texts | Should -Not -Contain '--help'
+        $texts | Should -Not -Contain '-h'
+    }
+
+    It 'prefix - after a subcommand offers -h/--help, not add' {
+        Set-ClaudeHelpProvider -Provider {
+            param($Path)
+            if (-not $Path) {
+                return @"
+Commands:
+  mcp                    Configure MCP
+"@
+            }
+            return @"
+Options:
+  -h, --help                            Display help for command
+Commands:
+  add                                   Add a server
+  list                                  List servers
+"@
+        }
+        Reset-ClaudeHelpCache
+        $texts = @(Complete-ClaudeNativeArgument -wordToComplete '-' -Tokens @('mcp') | ForEach-Object { $_.CompletionText })
+        $texts | Should -Contain '-h'
+        $texts | Should -Contain '--help'
+        $texts | Should -Not -Contain 'add'
+        $texts | Should -Not -Contain 'list'
+    }
+
+    It 'leaf command empty Tab still offers flags so Tab does not fall through to files' {
+        Set-ClaudeHelpProvider -Provider {
+            param($Path)
+            $key = if ($Path) { $Path -join ' ' } else { '' }
+            if ($key -eq '') { return "Commands:`n  mcp    MCP`n" }
+            if ($key -eq 'mcp') { return "Commands:`n  add    Add`n" }
+            return @"
+Options:
+  -t, --transport <transport>  Transport type
+  -h, --help                   Display help for command
+"@
+        }
+        Reset-ClaudeHelpCache
+        $texts = @(Complete-ClaudeNativeArgument -wordToComplete '' -Tokens @('mcp', 'add') | ForEach-Object { $_.CompletionText })
+        $texts | Should -Contain '--transport'
+        $texts | Should -Contain '-t'
+        $texts | Should -Not -Contain 'add'
+        $texts | Should -Not -Contain 'mcp'
     }
 
     It 'cache is keyed by command path' {

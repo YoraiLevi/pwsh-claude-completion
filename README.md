@@ -32,7 +32,8 @@ Help text is read as UTF-8 and folded to ASCII punctuation, so tooltips say `100
 
 | You type | Tab offers |
 |---|---|
-| `claude ` | subcommands + flags from root `--help` |
+| `claude ` | subcommands from root `--help` |
+| `claude -` | flags from root `--help` |
 | `claude --output-format ` | `text`, `json`, `stream-json` |
 | `claude mcp add --transport ` | `stdio`, `sse`, `http` |
 | `claude plugin marketplace ` | nested subcommands |

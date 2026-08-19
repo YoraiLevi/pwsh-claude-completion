@@ -10,6 +10,7 @@ PowerShell native completer for `claude`, driven by `--help`.
 Calls `claude.exe` (not the `claude` -> `Invoke-Claude` alias). Help is UTF-8 + ASCII-folded.
 MIT. Pester 5 suite generates all `2^n` help shapes from `tests/Helpers.ps1`.
 Install: one profile line (`Import-Module <psd1>; Register-ClaudeArgumentCompleter`). Not on the PowerShell Gallery.
+Empty Tab after a subcommand lists commands only (`mcp ` → `add`/`list`, not `--help`). Type `-` for flags. Leaf commands still offer flags on empty Tab. Commander's `help [command]` is dropped when `-h`/`--help` exist.
 CI: `.github/workflows/ci.yml` — Ubuntu / Windows / macOS `pwsh` jobs named `test (<os>)`, plus `test (windows-powershell-5.1)`. Also `Test-ModuleManifest` + PSScriptAnalyzer.
 PRIMARY (ruleset id `20972954`) requires all four of those checks.
 

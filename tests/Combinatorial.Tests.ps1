@@ -109,13 +109,21 @@ Describe 'completer against every 2^n help shape' {
 
         if ($_.HasCommands) {
             $texts | Should -Contain 'plugin'
+            $texts | Should -Not -Contain '--scope'
         } else {
             $texts | Should -Not -Contain 'plugin'
         }
 
-        if ($_.HasOptions) {
+        if ($_.HasOptions -and -not $_.HasCommands) {
             $texts | Should -Contain '--scope'
             $texts | Should -Not -Contain '--print'
+        }
+
+        if ($_.HasOptions) {
+            $flagTexts = Get-CompletionTexts -WordToComplete '--' -Tokens @()
+            $flagTexts | Should -Contain '--scope'
+            $flagTexts | Should -Not -Contain '--print'
+            $flagTexts | Should -Not -Contain 'plugin'
         } else {
             $texts | Should -Not -Contain '--scope'
         }

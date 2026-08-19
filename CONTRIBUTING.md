@@ -36,6 +36,9 @@ These live in `tests/Parser.Tests.ps1` because they are specific silent-failure 
 - `-h` and `-H` are distinct
 - Optional flag values must not swallow the next subcommand
 - A thrown help provider must not surface as a completer exception
+- Commander `help [command]` must not appear as a subcommand when `-h`/`--help` exist
+- Empty Tab after a subcommand must not mix flags into the command list
+- Leaf commands must still offer flags on empty Tab (no silent filesystem fallback)
 
 ## Docs
 

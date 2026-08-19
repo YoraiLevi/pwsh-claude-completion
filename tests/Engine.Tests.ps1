@@ -39,4 +39,21 @@ Describe 'engine-level native completion' {
         $result = [System.Management.Automation.CommandCompletion]::CompleteInput($input, $input.Length, $null)
         @($result.CompletionMatches | ForEach-Object { $_.CompletionText }) | Should -Contain 'mcp'
     }
+
+    It 'CompleteInput after claude[space] offers mcp, not flags' {
+        $input = 'claude '
+        $result = [System.Management.Automation.CommandCompletion]::CompleteInput($input, $input.Length, $null)
+        $texts = @($result.CompletionMatches | ForEach-Object { $_.CompletionText })
+        $texts | Should -Contain 'mcp'
+        $texts | Should -Not -Contain '--model'
+        $texts | Should -Not -Contain '--verbose'
+    }
+
+    It 'CompleteInput after claude --v offers --verbose, not mcp' {
+        $input = 'claude --v'
+        $result = [System.Management.Automation.CommandCompletion]::CompleteInput($input, $input.Length, $null)
+        $texts = @($result.CompletionMatches | ForEach-Object { $_.CompletionText })
+        $texts | Should -Contain '--verbose'
+        $texts | Should -Not -Contain 'mcp'
+    }
 }

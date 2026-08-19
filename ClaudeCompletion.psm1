@@ -293,6 +293,12 @@ function ConvertFrom-ClaudeHelpText {
         $i++
     }
 
+    # Commander lists `help [command]` under Commands and `-h, --help` under Options.
+    # Completing both makes `--help` look like a sibling of `add`. There is no `mcp help`.
+    if ($commands.ContainsKey('help') -and ($options.ContainsKey('-h') -or $options.ContainsKey('--help'))) {
+        [void]$commands.Remove('help')
+    }
+
     return [pscustomobject]@{
         Commands  = $commands
         Options   = $options
@@ -450,44 +456,53 @@ function Complete-ClaudeNativeArgument {
         }
 
         if (-not $assignFlag) {
-            foreach ($arg in @($spec.Arguments)) {
-                foreach ($choice in @($arg.Choices)) {
-                    if ($choice -like "$prefix*") {
-                        $tip = if ($arg.Description) { $arg.Description } else { $choice }
+            $wantFlags = [bool]($prefix -like '-*')
+            $hasCommands = $spec.Commands.Count -gt 0
+
+            if (-not $wantFlags) {
+                foreach ($arg in @($spec.Arguments)) {
+                    foreach ($choice in @($arg.Choices)) {
+                        if ($choice -like "$prefix*") {
+                            $tip = if ($arg.Description) { $arg.Description } else { $choice }
+                            [void]$results.Add([System.Management.Automation.CompletionResult]::new(
+                                $choice, $choice,
+                                [System.Management.Automation.CompletionResultType]::ParameterValue,
+                                $tip
+                            ))
+                        }
+                    }
+                    if ($arg.TakesPath -and $prefix -notlike '-*') {
+                        foreach ($hit in [System.Management.Automation.CompletionCompleters]::CompleteFilename($prefix)) {
+                            [void]$results.Add($hit)
+                        }
+                    }
+                }
+                foreach ($name in $spec.Commands.Keys) {
+                    if ($name -like "$prefix*") {
+                        $c = $spec.Commands[$name]
+                        $tip = if ($c.Description) { $c.Description } else { $name }
                         [void]$results.Add([System.Management.Automation.CompletionResult]::new(
-                            $choice, $choice,
-                            [System.Management.Automation.CompletionResultType]::ParameterValue,
+                            $name, $name,
+                            [System.Management.Automation.CompletionResultType]::Command,
                             $tip
                         ))
                     }
                 }
-                if ($arg.TakesPath -and $prefix -notlike '-*') {
-                    foreach ($hit in [System.Management.Automation.CompletionCompleters]::CompleteFilename($prefix)) {
-                        [void]$results.Add($hit)
+            }
+            # Flags on empty Tab only at a leaf (no Commands). Otherwise Tab after `mcp `
+            # mixed `--help` into the subcommand menu, and empty results fall through to files.
+            if ($wantFlags -or -not $hasCommands) {
+                foreach ($name in $spec.Options.Keys) {
+                    $opt = $spec.Options[$name]
+                    if (-not $opt.Repeatable -and $usedFlags.Contains($name)) { continue }
+                    if ($name -like "$prefix*") {
+                        $tip = if ($opt.Description) { $opt.Description } else { $name }
+                        [void]$results.Add([System.Management.Automation.CompletionResult]::new(
+                            $name, $name,
+                            [System.Management.Automation.CompletionResultType]::ParameterName,
+                            $tip
+                        ))
                     }
-                }
-            }
-            foreach ($name in $spec.Commands.Keys) {
-                if ($name -like "$prefix*") {
-                    $c = $spec.Commands[$name]
-                    $tip = if ($c.Description) { $c.Description } else { $name }
-                    [void]$results.Add([System.Management.Automation.CompletionResult]::new(
-                        $name, $name,
-                        [System.Management.Automation.CompletionResultType]::Command,
-                        $tip
-                    ))
-                }
-            }
-            foreach ($name in $spec.Options.Keys) {
-                $opt = $spec.Options[$name]
-                if (-not $opt.Repeatable -and $usedFlags.Contains($name)) { continue }
-                if ($name -like "$prefix*") {
-                    $tip = if ($opt.Description) { $opt.Description } else { $name }
-                    [void]$results.Add([System.Management.Automation.CompletionResult]::new(
-                        $name, $name,
-                        [System.Management.Automation.CompletionResultType]::ParameterName,
-                        $tip
-                    ))
                 }
             }
         }
